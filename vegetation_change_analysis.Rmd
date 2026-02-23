@@ -67,7 +67,7 @@ library(bfast)
 
 ## Dataset
 
-This analysis uses the **MOD13Q1** MODIS Terra product, a 16-day composite NDVI dataset at 250 m spatial resolution. The dataset spans from February 2000 to present and provides NDVI values in the range of -2000 to 10000 (scaled integers). The study area covers a region in Yellowhead Country, Alberta, where two regions of interest (ROIs) were selected to investigate distinct disturbance events.
+This analysis makes use of the **MOD13Q1** MODIS Terra product, a 16-day composite NDVI dataset at 250 m spatial resolution. The dataset spans from February 2000 to present and provides NDVI values in the range of -2000 to 10000 (scaled integers). The study area covers a region in Yellowhead Country, Alberta, where two regions of interest (ROIs) were selected to investigate distinct disturbance events.
 
 ------------------------------------------------------------------------
 
