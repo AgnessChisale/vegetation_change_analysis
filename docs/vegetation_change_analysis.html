@@ -187,7 +187,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>Part 1: MODIS NDVI Time Series — Yellowhead Country, Alberta</h1>
 <section id="dataset" class="level2">
 <h2 class="anchored" data-anchor-id="dataset">Dataset</h2>
-<p>This analysis uses the <strong>MOD13Q1</strong> MODIS Terra product, a 16-day composite NDVI dataset at 250 m spatial resolution. The dataset spans from February 2000 to present and provides NDVI values in the range of -2000 to 10000 (scaled integers). The study area covers a region in Yellowhead Country, Alberta, where two regions of interest (ROIs) were selected to investigate distinct disturbance events.</p>
+<p>This analysis makes use of the <strong>MOD13Q1</strong> MODIS Terra product, a 16-day composite NDVI dataset at 250 m spatial resolution. The dataset spans from February 2000 to present and provides NDVI values in the range of -2000 to 10000 (scaled integers). The study area covers a region in Yellowhead Country, Alberta, where two regions of interest (ROIs) were selected to investigate distinct disturbance events.</p>
 <hr>
 </section>
 <section id="loading-and-preparing-the-time-series" class="level2">
@@ -272,7 +272,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>roi <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"data/roi_MOD13Q1.shp"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `roi_MOD13Q1' from data source 
-  `C:\Users\achisale.stu\Documents\MGEM\Term 1\GEM 520\Labs\Lab 7\Lab7_data (1)\data\roi_MOD13Q1.shp' 
+  `C:\Users\achisale.stu\Documents\MGEM\vegetation_change_analysis\data\roi_MOD13Q1.shp' 
   using driver `ESRI Shapefile'
 Simple feature collection with 2 features and 1 field
 Geometry type: POINT
