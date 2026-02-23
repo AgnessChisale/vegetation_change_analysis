@@ -12,7 +12,7 @@ output:
     toc: true
     toc_float: true
     theme: flatly
-    df_print: paged
+    df_print: paged 
 ---
 
 ```{r setup, include=FALSE}
@@ -195,7 +195,7 @@ plot(bfm_B, main = "BFAST Monitor — ROI B (Monitoring from 2006)")
 ### Interpretation
 
 |   | ROI A | ROI B |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | **Break detected** | \~2011 | \~2008 |
 | **Direction of change** | Decrease | Decrease then recovery |
 | **Likely cause** | Stand-replacing disturbance (e.g. wildfire or harvest); NDVI remains depressed at a new lower equilibrium with no clear recovery trend | Disturbance followed by vegetation regrowth; NDVI rebounds toward pre-disturbance levels over subsequent years, suggesting natural regeneration |

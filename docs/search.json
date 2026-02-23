@@ -1,0 +1,100 @@
+[
+  {
+    "objectID": "vegetation_change_analysis.html#dependencies",
+    "href": "vegetation_change_analysis.html#dependencies",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "Dependencies",
+    "text": "Dependencies\n\n# Spatial data handling\nlibrary(terra)\nlibrary(sf)\n\n# Data manipulation\nlibrary(readr)\nlibrary(stringr)\nlibrary(lubridate)\nlibrary(dplyr)\nlibrary(tidyr)\n\n# Visualization\nlibrary(ggplot2)\n\n# Change detection\nlibrary(bfast)"
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#dataset",
+    "href": "vegetation_change_analysis.html#dataset",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "Dataset",
+    "text": "Dataset\nThis analysis uses the MOD13Q1 MODIS Terra product, a 16-day composite NDVI dataset at 250 m spatial resolution. The dataset spans from February 2000 to present and provides NDVI values in the range of -2000 to 10000 (scaled integers). The study area covers a region in Yellowhead Country, Alberta, where two regions of interest (ROIs) were selected to investigate distinct disturbance events."
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#loading-and-preparing-the-time-series",
+    "href": "vegetation_change_analysis.html#loading-and-preparing-the-time-series",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "Loading and Preparing the Time Series",
+    "text": "Loading and Preparing the Time Series\nThe time series consists of 460 individual GeoTIFF files (23 images per year × 20 years), each named with a Julian date identifier. Dates are parsed directly from filenames and used to label raster layers for traceability.\n\n# Load all NDVI .tif files\nflist &lt;- list.files(\n  path = \"data/MOD13Q1_TS\",\n  pattern = \"tif$\",\n  full.names = TRUE\n)\n\n# Extract and parse acquisition dates from filenames\nfname &lt;- basename(flist)\ndate_ts &lt;- str_sub(fname, start = 10, end = 16)\ndate_ts &lt;- as_date(date_ts, format = \"%Y%j\")\n\n# Summarize temporal coverage\ndata.frame(Dates = date_ts) %&gt;%\n  mutate(Year = year(Dates)) %&gt;%\n  group_by(Year) %&gt;%\n  summarise(`Images per Year` = n())\n\n# A tibble: 20 × 2\n    Year `Images per Year`\n   &lt;dbl&gt;             &lt;int&gt;\n 1  2001                23\n 2  2002                23\n 3  2003                23\n 4  2004                23\n 5  2005                23\n 6  2006                23\n 7  2007                23\n 8  2008                23\n 9  2009                23\n10  2010                23\n11  2011                23\n12  2012                23\n13  2013                23\n14  2014                23\n15  2015                23\n16  2016                23\n17  2017                23\n18  2018                23\n19  2019                23\n20  2020                23\n\n\nThe time series spans 2001 to 2020, with a consistent acquisition frequency of 23 images per year, reflecting the 16-day revisit cycle of the MODIS Terra platform."
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#median-ndvi-composite",
+    "href": "vegetation_change_analysis.html#median-ndvi-composite",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "Median NDVI Composite",
+    "text": "Median NDVI Composite\nTo visualize the baseline vegetation condition of the study area, a pixel-wise median NDVI composite is calculated across all 460 layers. The median is preferred over the mean as it is more robust to outliers caused by residual cloud contamination or sensor noise.\n\n# Stack all layers into a SpatRaster\nndvi_ts &lt;- rast(flist)\nnames(ndvi_ts) &lt;- date_ts\n\n# Compute per-pixel median across the full time series\nndvi_ts_median &lt;- app(ndvi_ts, fun = \"median\", na.rm = TRUE)\n\nplot(ndvi_ts_median,\n     main = \"Median NDVI — Yellowhead Country, Alberta (2001–2020)\",\n     col = colorRampPalette(c(\"#d73027\", \"#fee08b\", \"#1a9850\"))(100))"
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#roi-extraction-and-seasonal-ndvi-analysis",
+    "href": "vegetation_change_analysis.html#roi-extraction-and-seasonal-ndvi-analysis",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "ROI Extraction and Seasonal NDVI Analysis",
+    "text": "ROI Extraction and Seasonal NDVI Analysis\nTwo regions of interest (ROIs) are extracted from the time series to compare vegetation dynamics. Average NDVI values are extracted for each ROI and each time step, then filtered to examine May–September growing season conditions from 2001 to 2006.\n\n# Load ROI shapefile\nroi &lt;- st_read(\"data/roi_MOD13Q1.shp\")\n\nReading layer `roi_MOD13Q1' from data source \n  `C:\\Users\\achisale.stu\\Documents\\MGEM\\Term 1\\GEM 520\\Labs\\Lab 7\\Lab7_data (1)\\data\\roi_MOD13Q1.shp' \n  using driver `ESRI Shapefile'\nSimple feature collection with 2 features and 1 field\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: -7885506 ymin: 6129112 xmax: -7873407 ymax: 6133884\nProjected CRS: unnamed\n\n# Extract mean NDVI per ROI per time step\nndvi_roi &lt;- terra::extract(ndvi_ts, vect(roi), fun = \"mean\", na.rm = TRUE)\n\n# Reshape to long format\nndvi_roi_long &lt;- ndvi_roi %&gt;%\n  pivot_longer(\n    cols = -ID,\n    names_to = \"date\",\n    values_to = \"ndvi\"\n  ) %&gt;%\n  mutate(date = as_date(date, format = \"%Y-%m-%d\"))\n\n# Compute monthly growing-season averages (2001–2006)\nndvi_roi_summary &lt;- ndvi_roi_long %&gt;%\n  mutate(\n    year  = year(date),\n    month = month(date)\n  ) %&gt;%\n  filter(month &gt;= 5 & month &lt;= 9,\n         year  &lt;= 2006) %&gt;%\n  group_by(month) %&gt;%\n  summarise(mean_ndvi = mean(ndvi, na.rm = TRUE))\n\n\nggplot(ndvi_roi_summary, aes(x = factor(month), y = mean_ndvi, group = 1)) +\n  geom_line(color = \"#2c7bb6\", linewidth = 1) +\n  geom_point(color = \"#2c7bb6\", size = 3) +\n  scale_x_discrete(labels = c(\"May\", \"Jun\", \"Jul\", \"Aug\", \"Sep\")) +\n  labs(\n    title    = \"Average Monthly NDVI — Growing Season (2001–2006)\",\n    subtitle = \"Combined across ROI A and ROI B\",\n    x        = \"Month\",\n    y        = \"Mean NDVI\"\n  ) +\n  theme_minimal(base_size = 13)\n\n\n\n\n\n\n\n\nJuly consistently shows the highest average NDVI, which aligns with peak canopy greenness during the boreal growing season in Alberta."
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#bfast-change-detection",
+    "href": "vegetation_change_analysis.html#bfast-change-detection",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "BFAST Change Detection",
+    "text": "BFAST Change Detection\nThe BFAST Monitor algorithm (bfastmonitor) is used to detect structural breaks in the NDVI time series at each ROI. BFAST fits a harmonic seasonal model to a historical baseline period and then flags deviations in a subsequent monitoring period, making it well-suited for detecting disturbances like wildfires, harvesting, or insect outbreaks.\n\n# Separate time series by ROI\nndvi_roi_A &lt;- filter(ndvi_roi_long, ID == 1)\nndvi_roi_B &lt;- filter(ndvi_roi_long, ID == 2)\n\n# Convert to ts objects (23 observations per year)\nndvi_roi_A_ts &lt;- ts(ndvi_roi_A$ndvi, frequency = 23, start = c(2001, 1))\nndvi_roi_B_ts &lt;- ts(ndvi_roi_B$ndvi, frequency = 23, start = c(2001, 1))\n\n\nbfm_A &lt;- bfastmonitor(ndvi_roi_A_ts, start = c(2008, 1))\nplot(bfm_A, main = \"BFAST Monitor — ROI A (Monitoring from 2008)\")\n\n\n\n\nBFAST Monitor output for ROI A. Monitoring begins in 2008.\n\n\n\n\n\nbfm_B &lt;- bfastmonitor(ndvi_roi_B_ts, start = c(2006, 1))\nplot(bfm_B, main = \"BFAST Monitor — ROI B (Monitoring from 2006)\")\n\n\n\n\nBFAST Monitor output for ROI B. Monitoring begins in 2006.\n\n\n\n\n\nInterpretation\n\n\n\n\n\n\n\n\n\nROI A\nROI B\n\n\n\n\nBreak detected\n~2011\n~2008\n\n\nDirection of change\nDecrease\nDecrease then recovery\n\n\nLikely cause\nStand-replacing disturbance (e.g. wildfire or harvest); NDVI remains depressed at a new lower equilibrium with no clear recovery trend\nDisturbance followed by vegetation regrowth; NDVI rebounds toward pre-disturbance levels over subsequent years, suggesting natural regeneration\n\n\n\nThe contrasting post-break trajectories at the two ROIs highlight how BFAST can distinguish not just when a disturbance occurred, but whether recovery is underway — a key distinction for ecosystem monitoring."
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#dataset-1",
+    "href": "vegetation_change_analysis.html#dataset-1",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "Dataset",
+    "text": "Dataset\nThe land cover time series is derived from the Virtual Land Cover Engine (VLCE), a Landsat-based classification system developed by Hermosilla et al. (2017). It covers 1984–2016 at 30 m resolution, classifying pixels into 12 categories including multiple forest types, shrubland, wetlands, and open land classes. The study area (~25 × 20 km) is located near Williams Lake, BC, a region with active forest harvesting and regeneration."
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#loading-the-land-cover-time-series",
+    "href": "vegetation_change_analysis.html#loading-the-land-cover-time-series",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "Loading the Land Cover Time Series",
+    "text": "Loading the Land Cover Time Series\n\n# Load all VLCE annual maps\nflist_vlce &lt;- list.files(\n  \"data/VLCE_TS\",\n  pattern = \"tif$\",\n  full.names = TRUE\n)\n\n# Extract years from filenames\nyear_ts &lt;- str_extract(flist_vlce, pattern = \"[0-9]{4}\")\n\n# Stack into a single SpatRaster and label by year\nvlce_ts &lt;- rast(flist_vlce)\nnames(vlce_ts) &lt;- year_ts"
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#visualizing-land-cover-change-1984-vs.-2016",
+    "href": "vegetation_change_analysis.html#visualizing-land-cover-change-1984-vs.-2016",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "Visualizing Land Cover Change: 1984 vs. 2016",
+    "text": "Visualizing Land Cover Change: 1984 vs. 2016\n\nplot(c(vlce_ts$`1984`, vlce_ts$`2016`),\n     main = c(\"Land Cover — 1984\", \"Land Cover — 2016\"))\n\n\n\n\nLand cover in 1984 (left) and 2016 (right). Shifts in the spatial distribution of coniferous forest and shrubland are clearly visible.\n\n\n\n\nComparing the two endpoints of the time series, coniferous forest shows the most dramatic change — large patches converted to shrubland consistent with harvesting activity, while adjacent shrubland areas have transitioned back to forest, reflecting regeneration of previously harvested stands. Water bodies and herb-dominated areas remain largely stable across the 33-year period."
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#reclassifying-to-forested-non-forested",
+    "href": "vegetation_change_analysis.html#reclassifying-to-forested-non-forested",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "Reclassifying to Forested / Non-Forested",
+    "text": "Reclassifying to Forested / Non-Forested\nTo quantify forest dynamics, all land cover classes are reclassified into a binary forested (1) / non-forested (0) scheme. Forest classes include: Coniferous, Broadleaf, Mixed Wood, and Wetland-Treed.\n\n# Load reclassification lookup table\nlc_class &lt;- read.csv(\"data/lc_reclassification.csv\")\n\n# Build reclassification matrix (original value → new value)\nclass_mat &lt;- cbind(lc_class$org_value, lc_class$new_value)\n\n# Apply reclassification\nts_forested &lt;- classify(vlce_ts, class_mat)"
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#detecting-annual-forest-gain-and-loss",
+    "href": "vegetation_change_analysis.html#detecting-annual-forest-gain-and-loss",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "Detecting Annual Forest Gain and Loss",
+    "text": "Detecting Annual Forest Gain and Loss\nA lagged difference (year t minus year t-1) is computed for each pixel. This produces a change layer where:\n\nA value of +1 indicates forest gain (non-forested → forested)\nA value of -1 indicates forest loss (forested → non-forested)\nA value of 0 indicates no change\n\n\n# Compute year-on-year difference\nts_forested_diff &lt;- diff(ts_forested, lag = 1)"
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#quantifying-forest-area-change-over-time",
+    "href": "vegetation_change_analysis.html#quantifying-forest-area-change-over-time",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "Quantifying Forest Area Change Over Time",
+    "text": "Quantifying Forest Area Change Over Time\nForest gain and loss are calculated annually in hectares, based on the 30 m pixel resolution (1 pixel = 900 m² = 0.09 ha).\n\n# Annual forest gain (pixels transitioning from 0 → 1)\ncount_gain &lt;- global(ts_forested_diff == 1, \"sum\", na.rm = TRUE)\nforest_gain &lt;- data.frame(\n  year = as.integer(rownames(count_gain)),\n  gain = count_gain$sum * 900 / 10000\n)\n\n# Annual forest loss (pixels transitioning from 1 → 0)\ncount_loss &lt;- global(ts_forested_diff == -1, \"sum\", na.rm = TRUE)\nforest_loss &lt;- data.frame(\n  year = as.integer(rownames(count_loss)),\n  loss = count_loss$sum * 900 / 10000\n)\n\n# Combine and compute net change\nforest_change &lt;- inner_join(forest_gain, forest_loss, by = \"year\") %&gt;%\n  mutate(net_change = gain - loss)"
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#results-net-forest-area-change-19852016",
+    "href": "vegetation_change_analysis.html#results-net-forest-area-change-19852016",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "Results: Net Forest Area Change (1985–2016)",
+    "text": "Results: Net Forest Area Change (1985–2016)\n\nggplot(forest_change, aes(x = year, y = net_change)) +\n  geom_line(color = \"black\", linewidth = 1) +\n  geom_point(color = \"black\", size = 2) +\n  geom_abline(slope = 0, intercept = 0, linetype = \"dashed\", color = \"grey40\") +\n  labs(\n    title = \"Net Change in Forested Area — Williams Lake, BC (1985–2016)\",\n    x     = \"Year\",\n    y     = \"Net Forest Change (ha)\"\n  ) +\n  theme_minimal(base_size = 13)\n\n\n\n\nAnnual net change in forested area. Values above zero indicate net forest gain; values below zero indicate net forest loss."
+  },
+  {
+    "objectID": "vegetation_change_analysis.html#results-annual-forest-gain-and-loss-19852016",
+    "href": "vegetation_change_analysis.html#results-annual-forest-gain-and-loss-19852016",
+    "title": "Vegetation Change & Forest Dynamics in Alberta and British Columbia",
+    "section": "Results: Annual Forest Gain and Loss (1985–2016)",
+    "text": "Results: Annual Forest Gain and Loss (1985–2016)\n\n# Reshape for grouped bar chart\nforest_change_long &lt;- forest_change %&gt;%\n  select(year, gain, loss) %&gt;%\n  pivot_longer(cols = c(gain, loss), names_to = \"type\", values_to = \"area_ha\") %&gt;%\n  mutate(type = recode(type, gain = \"Forest Gain\", loss = \"Forest Loss\"))\n\nggplot(forest_change_long, aes(x = year, y = area_ha, fill = type)) +\n  geom_bar(stat = \"identity\", position = \"dodge\") +\n  scale_fill_manual(values = c(\"Forest Gain\" = \"#1a9850\", \"Forest Loss\" = \"#d73027\")) +\n  labs(\n    title  = \"Annual Forest Gain and Loss — Williams Lake, BC (1985–2016)\",\n    x      = \"Year\",\n    y      = \"Area (ha)\",\n    fill   = NULL\n  ) +\n  theme_minimal(base_size = 13) +\n  theme(legend.position = \"top\")\n\n\n\n\nAnnual forest area gained (green) and lost (red) between 1985 and 2016.\n\n\n\n\nThe gain/loss breakdown reveals distinct periods of intensive harvesting (years with large loss spikes) followed by multi-year recovery windows where gain exceeds loss. This pattern is characteristic of managed boreal and montane forests in BC, where clear-cut blocks are replanted and monitored under provincial forestry regulations."
+  }
+]
