@@ -1,0 +1,14 @@
+"lc_class","org_value","new_value"
+"Unclassified",0,NA
+"Water",20,0
+"Snow/Ice",31,0
+"Rock/Rubble",32,0
+"Exposed/Barren Land",33,0
+"Bryoids",40,0
+"Shrubland",50,0
+"Wetland",80,0
+"Wetland-Treed",81,1
+"Herbs",100,0
+"Coniferous",210,1
+"Broadleaf",220,1
+"Mixed Wood",230,1
