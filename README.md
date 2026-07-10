@@ -1,11 +1,10 @@
-# 🌲 Vegetation Change & Forest Dynamics in Western Canada
-### A Remote Sensing Analysis in R
+# Vegetation Change & Forest Dynamics in Western Canada
 
 This project investigates vegetation disturbance and forest cover change across two study areas in western Canada using freely available satellite imagery and open-source R tools. It demonstrates a full remote sensing workflow — from raw data ingestion and preprocessing through time series analysis, change detection, and interpretation.
 
 ---
 
-## 📍 Study Areas
+##  Study Areas
 
 | Area | Province | Analysis Focus |
 |---|---|---|
@@ -14,7 +13,7 @@ This project investigates vegetation disturbance and forest cover change across 
 
 ---
 
-## 🛰️ Data Sources
+##  Data Sources
 
 - **MODIS MOD13Q1** — 16-day NDVI composite, 250 m resolution, 2001–2020
   - Source: [NASA LP DAAC](https://lpdaac.usgs.gov/products/mod13q1v006/)
@@ -23,16 +22,16 @@ This project investigates vegetation disturbance and forest cover change across 
 
 ---
 
-## 🔬 Methods
+##  Methods
 
-### Part 1 — MODIS NDVI Time Series (Alberta)
+### Part 1: MODIS NDVI Time Series (Alberta)
 - Loaded and parsed a 460-layer MODIS NDVI time series
 - Computed pixel-wise median NDVI composite for baseline visualization
 - Extracted average NDVI for two regions of interest (ROIs)
 - Analyzed growing season (May–September) NDVI patterns
 - Applied **BFAST Monitor** to detect structural breaks in vegetation greenness and distinguish between permanent loss and recovering disturbances
 
-### Part 2 — Land Cover Change (BC)
+### Part 2: Land Cover Change (BC)
 - Loaded a 33-year Landsat land cover time series (12 classes)
 - Reclassified land cover into a binary forested / non-forested scheme
 - Computed year-on-year lagged differences to identify annual forest gain and loss pixels
@@ -41,7 +40,7 @@ This project investigates vegetation disturbance and forest cover change across 
 
 ---
 
-## 📊 Key Results
+##  Key Results
 
 - **ROI A (Alberta):** BFAST detected an abrupt NDVI decline around 2011 with no subsequent recovery, consistent with a stand-replacing disturbance such as wildfire or clear-cut harvesting
 - **ROI B (Alberta):** A disturbance detected around 2008 was followed by a gradual NDVI increase, indicating natural vegetation recovery
@@ -49,24 +48,9 @@ This project investigates vegetation disturbance and forest cover change across 
 
 ---
 
-## 🗂️ Repository Structure
-
-```
-├── vegetation_change_analysis.Rmd   # Main analysis document
-├── vegetation_change_analysis.pdf   # Knitted PDF output
-├── data/
-│   ├── MOD13Q1_TS/                  # MODIS NDVI GeoTIFFs
-│   ├── roi_MOD13Q1.shp              # Alberta ROI shapefile
-│   ├── VLCE_TS/                     # VLCE land cover GeoTIFFs
-│   └── lc_reclassification.csv      # Reclassification lookup table
-└── README.md
-```
-
-> **Note:** Raw raster data files are not included in this repository due to file size. See the data sources above to download them directly.
-
 ---
 
-## 🛠️ R Packages Used
+##  R Packages Used
 
 | Package | Purpose |
 |---|---|
@@ -80,13 +64,6 @@ This project investigates vegetation disturbance and forest cover change across 
 
 ---
 
-## 🚀 How to Run
-
-1. Clone this repository
-2. Download the required raster datasets (see Data Sources above) and place them in the `data/` folder
-3. Open `vegetation_change_analysis.Rmd` in RStudio
-4. Install any missing packages with `install.packages(c("terra", "sf", "bfast", "tidyverse"))`
-5. Knit to PDF or HTML
 
 ---
 
@@ -97,5 +74,3 @@ This project investigates vegetation disturbance and forest cover change across 
 - Verbesselt, J., Zeileis, A., & Herold, M. (2012). Near real-time disturbance detection using satellite image time series. *Remote Sensing of Environment*, 123, 98–108.
 
 ---
-
-*Analysis performed in R · Data from NASA EOSDIS and the VLCE project*
